@@ -137,5 +137,5 @@ Write-Host "   👉 https://www.turktrust.com.tr/tr/suruculer" -ForegroundColor 
 Write-Host "4. ACS ACR38 / ACR39 Sürücüleri:" -ForegroundColor Cyan
 Write-Host "   👉 https://www.acs.com.hk/en/driver/4/acr38u-pocketmate-smart-card-reader/" -ForegroundColor White
 
-Write-Host "`nDetaylı Çözüm Kılavuzu: https://eimza-kep.github.io/eimza-blog/posts/windows-11-akilli-kart-taninmiyor-cozumu.html" -ForegroundColor Yellow
+Write-Host "`nDetaylı Çözüm Kılavuzu: https://eimza-rehberi.pages.dev/yazilar/bilgisayar-e-imzayi-gormuyor-cozum.html" -ForegroundColor Yellow
 Write-Host "==========================================================================================`n" -ForegroundColor Cyan
