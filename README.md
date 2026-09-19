@@ -48,9 +48,15 @@ Bu araç; Windows sistem hizmetlerini, USB kart okuyucu donanımlarını ve yük
 * Repoyu indirin ve **`diagnose.bat`** dosyasına çift tıklayın.
 
 ### 2. Hizmetleri Otomatik Onarma (Önerilen)
-Eğer Windows Akıllı Kart Hizmeti (`SCardSvr`) kapalıysa veya çökmüşse, tek komutla otomatik başlatmak ve başlangıç türünü "Otomatik" yapmak için:
+Eğer Windows Akıllı Kart Hizmeti (`SCardSvr`) kapalıysa veya çökmüşse, tek komutla otomatik başlatmak ve başlangıç türünü "Otomatik" yapmak için (Yönetici yetkisi gerekir):
 ```powershell
 .\Diagnose-SmartCard.ps1 -FixServices
+```
+
+### 3. Teşhis Raporunu JSON Olarak Dışa Aktarma
+Kurumsal BT envanteri veya uzaktan teknik destek için sistem durumunu JSON formatında kaydetmek için:
+```powershell
+.\Diagnose-SmartCard.ps1 -ExportJson "tehis-raporu.json"
 ```
 
 ---

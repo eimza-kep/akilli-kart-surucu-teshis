@@ -14,15 +14,29 @@
 
 [CmdletBinding()]
 param(
-    [switch]$FixServices = $false
+    [switch]$FixServices = $false,
+    [string]$ExportJson = ""
 )
 
-$OutputEncoding = [System.Text.Encoding]::UTF8
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+try {
+    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+    $OutputEncoding = [System.Text.Encoding]::UTF8
+} catch {}
+
+$isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 
 Write-Host "==========================================================================================" -ForegroundColor Cyan
-Write-Host "        WINDOWS E-İMZA & AKILLI KART SÜRÜCÜ TEŞHİS ARACI v1.0                             " -ForegroundColor Yellow
+Write-Host "        WINDOWS E-İMZA & AKILLI KART SÜRÜCÜ TEŞHİS ARACI v1.1                             " -ForegroundColor Yellow
 Write-Host "==========================================================================================`n" -ForegroundColor Cyan
+
+$diagReport = [ordered]@{
+    Timestamp = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
+    IsAdmin = $isAdmin
+    Services = @()
+    Devices = @()
+    InstalledDrivers = @()
+    Status = "OK"
+}
 
 # ------------------------------------------------------------------------------
 # 1. Windows Akıllı Kart Hizmetleri Denetimi
@@ -38,21 +52,32 @@ foreach ($sName in $servicesToCheck) {
         $statusColor = if ($svc.Status -eq "Running") { "Green" } else { "Red" }
         Write-Host ("  - Hizmet: {0,-15} | Durum: {1,-10} | Başlangıç: {2}" -f $sName, $svc.Status, $svc.StartType) -ForegroundColor $statusColor
         
+        $diagReport.Services += @{
+            Name = $sName
+            Status = "$($svc.Status)"
+            StartType = "$($svc.StartType)"
+        }
+
         if ($svc.Status -ne "Running") {
             $servicesOk = $false
             if ($FixServices) {
-                Write-Host "    [!] $sName hizmeti başlatılıyor ve Otomatik yapılıyor..." -ForegroundColor Yellow
-                try {
-                    Set-Service -Name $sName -StartupType Automatic -Status Running -ErrorAction Stop
-                    Write-Host "    [OK] Hizmet başarıyla başlatıldı!" -ForegroundColor Green
-                } catch {
-                    Write-Host "    [HATA] Hizmet başlatılamadı. Lütfen yönetici (Admin) olarak çalıştırın." -ForegroundColor Red
+                if (-not $isAdmin) {
+                    Write-Host "    [!] UYARI: Hizmetleri başlatmak için PowerShell'i 'Yönetici Olarak Çalıştır'manız gerekir." -ForegroundColor Red
+                } else {
+                    Write-Host "    [!] $sName hizmeti başlatılıyor ve Otomatik yapılıyor..." -ForegroundColor Yellow
+                    try {
+                        Set-Service -Name $sName -StartupType Automatic -Status Running -ErrorAction Stop
+                        Write-Host "    [OK] Hizmet başarıyla başlatıldı!" -ForegroundColor Green
+                    } catch {
+                        Write-Host "    [HATA] Hizmet başlatılamadı: $_" -ForegroundColor Red
+                    }
                 }
             }
         }
     } else {
         Write-Host "  - Hizmet: $sName bulunamadı!" -ForegroundColor Red
         $servicesOk = $false
+        $diagReport.Services += @{ Name = $sName; Status = "NotFound"; StartType = "N/A" }
     }
 }
 
@@ -86,6 +111,13 @@ if ($pnpDevices.Count -gt 0) {
         Write-Host "  Durum:         $($dev.Status)" -ForegroundColor $stateColor
         Write-Host "  Üretici:       $($dev.Manufacturer)" -ForegroundColor Gray
         Write-Host "  Donanım Kimliği: $($dev.HardwareID[0])" -ForegroundColor DarkGray
+
+        $diagReport.Devices += @{
+            Name = $dev.Name
+            Status = $dev.Status
+            Manufacturer = $dev.Manufacturer
+            HardwareID = if ($dev.HardwareID) { $dev.HardwareID[0] } else { $null }
+        }
     }
 } else {
     Write-Host "  [!] Takılı bir Akıllı Kart Okuyucu veya e-İmza USB cihazı tespit edilemedi." -ForegroundColor Yellow
@@ -116,6 +148,11 @@ if ($installedApps.Count -gt 0) {
     Write-Host "  Yüklü Sürücüler:" -ForegroundColor Green
     foreach ($app in $installedApps) {
         Write-Host ("  - {0,-35} | Sürüm: {1,-10} | {2}" -f $app.DisplayName, $app.DisplayVersion, $app.Publisher) -ForegroundColor White
+        $diagReport.InstalledDrivers += @{
+            DisplayName = $app.DisplayName
+            DisplayVersion = $app.DisplayVersion
+            Publisher = $app.Publisher
+        }
     }
 } else {
     Write-Host "  [!] Sistemde AKİS, SafeNet veya Kamu SM sürücüsü tespit edilemedi!" -ForegroundColor Red
@@ -139,3 +176,12 @@ Write-Host "   👉 https://www.acs.com.hk/en/driver/4/acr38u-pocketmate-smart-c
 
 Write-Host "`nDetaylı Çözüm Kılavuzu: https://eimza-rehberi.pages.dev/yazilar/bilgisayar-e-imzayi-gormuyor-cozum.html" -ForegroundColor Yellow
 Write-Host "==========================================================================================`n" -ForegroundColor Cyan
+
+if ($ExportJson) {
+    try {
+        $diagReport | ConvertTo-Json -Depth 4 | Out-File -FilePath $ExportJson -Encoding utf8
+        Write-Host "[OK] Teşhis raporu JSON dosyasına kaydedildi: $ExportJson" -ForegroundColor Green
+    } catch {
+        Write-Host "[HATA] Rapor dosyasına yazılamadı: $_" -ForegroundColor Red
+    }
+}
