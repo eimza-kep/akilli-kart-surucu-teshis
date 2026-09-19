@@ -72,18 +72,11 @@ Eğer Windows Akıllı Kart Hizmeti (`SCardSvr`) kapalıysa veya çökmüşse, t
 
 ---
 
-## 📚 Detaylı Rehberler
-
-* 📄 [Windows 11'de 'Akıllı Kart Tanınmıyor' Hatası ve e-İmza Sürücü Çözümleri](https://eimza-kep.github.io/eimza-blog/posts/windows-11-akilli-kart-taninmiyor-cozumu.html)
-* 📄 [E-İmza Cihazları (USB Token) Nasıl Çalışır? Çipin İçindeki Teknik Dünya](https://eimza-kep.github.io/eimza-blog/posts/e-imza-cihazlari-nasil-calisir-teknik-rehber.html)
-* 📄 [Hekimler İçin SGK Medula e-Reçete: e-İmza Kurulumu ve Sertifika Okunamadı Hatası](https://eimza-kep.github.io/eimza-blog/posts/medula-e-recete-e-imza-kurulum-sorunlari.html)
-
 ---
 
 ## ⚖️ Lisans
 
 Bu proje [MIT Lisansı](LICENSE) ile sunulmaktadır.
-
 
 ### 📚 İlgili Rehber ve Çözümler
 * 📄 [Bilgisayar E-İmzayı Görmüyor: En Sık Karşılaşılan 4 USB Port ve Sürücü Hatası](https://eimza-rehberi.pages.dev/yazilar/bilgisayar-e-imzayi-gormuyor-cozum.html)
