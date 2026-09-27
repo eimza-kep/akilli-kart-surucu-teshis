@@ -1,6 +1,13 @@
 import unittest
 import sys
-from diagnose_token import match_usb_vendor, check_installed_pkcs11, run_diagnostics, detect_platform_os
+from diagnose_token import (
+    match_usb_vendor,
+    check_installed_pkcs11,
+    run_diagnostics,
+    detect_platform_os,
+    check_smartcard_service,
+    generate_markdown_report
+)
 
 class TestSmartCardDiagnose(unittest.TestCase):
     def test_match_usb_vendor(self):
@@ -19,13 +26,21 @@ class TestSmartCardDiagnose(unittest.TestCase):
         self.assertIn("found", res)
         self.assertIn("missing", res)
         total = len(res["found"]) + len(res["missing"])
-        self.assertGreaterEqual(total, 3)
+        self.assertGreaterEqual(total, 4)
 
-    def test_run_diagnostics(self):
+    def test_check_smartcard_service(self):
+        svc = check_smartcard_service()
+        self.assertIn("status", svc)
+        self.assertIn("detail", svc)
+
+    def test_run_diagnostics_and_markdown(self):
         report = run_diagnostics()
         self.assertIn("platform", report)
         self.assertIn("summary", report)
-        self.assertIn("drivers_installed", report)
+        self.assertIn("smartcard_service", report)
+
+        md = generate_markdown_report(report)
+        self.assertIn("Sürücü Teşhis Raporu", md)
 
 if __name__ == "__main__":
     unittest.main()

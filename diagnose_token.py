@@ -1,13 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Akıllı Kart ve E-İmza Donanım / Sürücü Teşhis Aracı
-Windows, Linux ve macOS ortamlarında takılı akıllı kart okuyucuları ve PKCS#11 sürücülerini denetler.
+Akıllı Kart ve E-İmza Donanım / Sürücü Teşhis Aracı v1.2
+=========================================================
+Windows, Linux ve macOS ortamlarında takılı akıllı kart okuyucuları,
+Akıllı Kart Servisini (SCardSvr / pcscd) ve Türkiye ESHS sağlayıcılarının
+(AKİS, SafeNet, TÜRKTRUST, E-Tuğra, E-Güven vb.) PKCS#11 sürücülerini denetler.
+
+Yazar: E-İmza & Dijital Dönüşüm Portalı (https://eimza-rehberi.pages.dev/)
+Lisans: MIT
 """
 
 import os
 import sys
 import json
+import subprocess
 from pathlib import Path
 
 # Force UTF-8 stdout
@@ -18,7 +25,7 @@ if sys.platform == "win32":
         pass
 
 KNOWN_PKCS11_LIBS = {
-    "AKİS (TÜBİTAK BİLGEM)": {
+    "AKİS (TÜBİTAK BİLGEM / Kamu SM)": {
         "win": [
             r"C:\Windows\System32\akisp11.dll",
             r"C:\Windows\SysWOW64\akisp11.dll"
@@ -33,7 +40,7 @@ KNOWN_PKCS11_LIBS = {
             "/Library/Frameworks/AkiS.framework/AkiS"
         ]
     },
-    "SafeNet / Thales eToken": {
+    "SafeNet / Thales eToken (E-Güven & TÜRKTRUST)": {
         "win": [
             r"C:\Windows\System32\eTPKCS11.dll",
             r"C:\Windows\SysWOW64\eTPKCS11.dll"
@@ -45,6 +52,30 @@ KNOWN_PKCS11_LIBS = {
         "darwin": [
             "/usr/local/lib/libeTPKCS11.dylib"
         ]
+    },
+    "TÜRKTRUST / Bit4id (Palma & Minisign)": {
+        "win": [
+            r"C:\Windows\System32\bit4ipki.dll",
+            r"C:\Windows\SysWOW64\bit4ipki.dll",
+            r"C:\Windows\System32\aetpkss1.dll"
+        ],
+        "linux": [
+            "/usr/lib/libbit4ipki.so"
+        ],
+        "darwin": [
+            "/Library/Frameworks/bit4ipki.framework/bit4ipki"
+        ]
+    },
+    "E-Tuğra / EBG Bilişim (CardOS & Asekey)": {
+        "win": [
+            r"C:\Windows\System32\siecap11.dll",
+            r"C:\Windows\SysWOW64\siecap11.dll",
+            r"C:\Windows\System32\asepkcs.dll"
+        ],
+        "linux": [
+            "/usr/lib/libasepkcs.so"
+        ],
+        "darwin": []
     },
     "OpenSC (Açık Kaynak Kart Desteği)": {
         "win": [
@@ -78,6 +109,42 @@ def detect_platform_os():
         return "darwin"
     else:
         return "linux"
+
+def check_smartcard_service():
+    """Akıllı kart sistem servisinin (SCardSvr / pcscd) çalışma durumunu kontrol eder."""
+    os_type = detect_platform_os()
+    status = "BILINMIYOR"
+    detail = ""
+
+    if os_type == "win":
+        try:
+            res = subprocess.run(["sc", "query", "SCardSvr"], capture_output=True, text=True, timeout=5)
+            if "RUNNING" in res.stdout:
+                status = "CALISIYOR"
+                detail = "Windows Akıllı Kart Hizmeti (SCardSvr) Aktif"
+            elif "STOPPED" in res.stdout:
+                status = "DURDURULDU"
+                detail = "Windows Akıllı Kart Hizmeti durdurulmuş (net start SCardSvr gerekli)"
+            else:
+                status = "BULUNAMADI"
+                detail = res.stdout.strip()
+        except Exception as e:
+            status = "HATA"
+            detail = str(e)
+    else:
+        try:
+            res = subprocess.run(["systemctl", "is-active", "pcscd"], capture_output=True, text=True, timeout=5)
+            if "active" in res.stdout:
+                status = "CALISIYOR"
+                detail = "Linux pcscd servisi aktif"
+            else:
+                status = "DURDURULDU"
+                detail = "pcscd servisi çalışmıyor (sudo systemctl start pcscd)"
+        except Exception as e:
+            status = "KONTROL_EDILEMEDI"
+            detail = str(e)
+
+    return {"status": status, "detail": detail}
 
 def check_installed_pkcs11(os_type=None):
     """Sistemde kurulu PKCS#11 kütüphanelerini denetler."""
@@ -120,20 +187,42 @@ def match_usb_vendor(vendor_id):
 def run_diagnostics():
     os_type = detect_platform_os()
     pkcs11_res = check_installed_pkcs11(os_type)
+    svc_status = check_smartcard_service()
 
     report = {
         "platform": sys.platform,
         "os_category": os_type,
+        "smartcard_service": svc_status,
         "drivers_installed": pkcs11_res["found"],
         "drivers_missing": pkcs11_res["missing"],
-        "summary": "OK" if pkcs11_res["found"] else "NO_DRIVERS_FOUND"
+        "summary": "OK" if pkcs11_res["found"] and svc_status["status"] == "CALISIYOR" else "ISSUES_DETECTED"
     }
     return report
 
+def generate_markdown_report(report):
+    md = "# Akıllı Kart & E-İmza Sürücü Teşhis Raporu\n\n"
+    md += f"- **İşletim Sistemi:** `{report['platform']}` ({report['os_category']})\n"
+    md += f"- **Akıllı Kart Servisi:** `{report['smartcard_service']['status']}` - {report['smartcard_service']['detail']}\n"
+    md += f"- **Genel Durum:** {'✅ Tüm Bileşenler Hazır' if report['summary'] == 'OK' else '⚠️ Eksikler Tespit Edildi'}\n\n"
+
+    md += "## Tespit Edilen PKCS#11 Sürücüleri\n\n"
+    if report["drivers_installed"]:
+        for d in report["drivers_installed"]:
+            md += f"- ✅ **{d['name']}:** `{d['path']}`\n"
+    else:
+        md += "> ⚠️ Sistemde geçerli bir e-imza PKCS#11 kütüphanesi bulunamadı.\n"
+
+    md += "\n## Kurulu Olmayan Sürücüler\n\n"
+    for d in report["drivers_missing"]:
+        md += f"- ❌ {d['name']}\n"
+
+    return md
+
 def main():
     import argparse
-    parser = argparse.ArgumentParser(description="E-İmza & Akıllı Kart Sürücü Teşhis Aracı")
+    parser = argparse.ArgumentParser(description="E-İmza & Akıllı Kart Sürücü Teşhis Aracı v1.2")
     parser.add_argument("--json", action="store_true", help="JSON formatında çıktı ver")
+    parser.add_argument("--markdown", action="store_true", help="Markdown formatında rapor üret")
     args = parser.parse_args()
 
     report = run_diagnostics()
@@ -142,10 +231,15 @@ def main():
         print(json.dumps(report, indent=2, ensure_ascii=False))
         return
 
-    print("=" * 65)
-    print("  AKILLI KART & E-İMZA SÜRÜCÜ TEŞHİS RAPORU")
-    print("=" * 65)
-    print(f"İşletim Sistemi: {sys.platform} ({report['os_category']})")
+    if args.markdown:
+        print(generate_markdown_report(report))
+        return
+
+    print("=" * 70)
+    print("      AKILLI KART & E-İMZA SÜRÜCÜ TEŞHİS RAPORU v1.2")
+    print("=" * 70)
+    print(f"İşletim Sistemi:     {sys.platform} ({report['os_category']})")
+    print(f"Akıllı Kart Servisi: {report['smartcard_service']['status']} ({report['smartcard_service']['detail']})")
     print("\n[+] Tespit Edilen PKCS#11 Sürücüleri:")
     if report["drivers_installed"]:
         for d in report["drivers_installed"]:
@@ -157,7 +251,7 @@ def main():
     for d in report["drivers_missing"]:
         print(f"  ✗ {d['name']}")
 
-    print("\n" + "=" * 65)
+    print("\n" + "=" * 70)
 
 if __name__ == "__main__":
     main()
