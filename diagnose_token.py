@@ -7,7 +7,7 @@ Windows, Linux ve macOS ortamlarında takılı akıllı kart okuyucuları,
 Akıllı Kart Servisini (SCardSvr / pcscd) ve Türkiye ESHS sağlayıcılarının
 (AKİS, SafeNet, TÜRKTRUST, E-Tuğra, E-Güven vb.) PKCS#11 sürücülerini denetler.
 
-Yazar: E-İmza & Dijital Dönüşüm Portalı (https://eimza-rehberi.pages.dev/)
+Yazar: E-İmza & Dijital Dönüşüm Portalı (https://eimzabilgi.site/)
 Lisans: MIT
 """
 

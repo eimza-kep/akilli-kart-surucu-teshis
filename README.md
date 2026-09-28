@@ -3,7 +3,7 @@
 [![Python CI](https://github.com/eimza-kep/akilli-kart-surucu-teshis/actions/workflows/ci.yml/badge.svg)](https://github.com/eimza-kep/akilli-kart-surucu-teshis/actions)
 [![Lisans: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Platform: Win | Linux | Mac](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-blue.svg)](https://github.com)
-[![Blog](https://img.shields.io/badge/Rehber-E--%C4%B0mza%20Rehberi-22c55e.svg)](https://eimza-rehberi.pages.dev/)
+[![Blog](https://img.shields.io/badge/Rehber-E--%C4%B0mza%20Rehberi-22c55e.svg)](https://eimzabilgi.site/)
 
 Windows (10/11), Linux ve macOS sistemlerinde e-imza USB token cihazlarının, akıllı kart okuyucularının, **Windows Akıllı Kart Hizmetinin (SCardSvr)** ve Türkiye'deki yetkili ESHS sağlayıcılarına (TÜBİTAK Kamu SM / AKİS, SafeNet / Thales, TÜRKTRUST, E-Tuğra, E-Güven vb.) ait **PKCS#11 sürücülerinin** kurulu olup olmadığını denetleyen açık kaynaklı tanı asistanı.
 
@@ -56,9 +56,9 @@ Bu araç [eimza-kep](https://github.com/eimza-kep) organizasyonunun açık kayna
 ---
 
 ## 📚 İlgili Teknik Rehberler
-* 📄 [E-İmza Kartı Takılı Ama Okumuyor Hatası Kesin Çözüm Adımları](https://eimza-rehberi.pages.dev/yazilar/e-imza-karti-okumuyor-hatasi-kesin-cozum.html)
-* 📄 [Windows 11 Güncellemesi Sonrası Akıllı Kart Servis Onarımı](https://eimza-rehberi.pages.dev/yazilar/windows-11-eimza-akis-kurulum-sorunlari.html)
-* 📄 [Mac (macOS Sonoma / Sequoia) Üzerinde E-İmza ve AKİS Kurulumu](https://eimza-rehberi.pages.dev/yazilar/mac-macos-eimza-kurulumu-akis-kart-okuyucu.html)
+* 📄 [E-İmza Kartı Takılı Ama Okumuyor Hatası Kesin Çözüm Adımları](https://eimzabilgi.site/yazilar/e-imza-karti-okumuyor-hatasi-kesin-cozum.html)
+* 📄 [Windows 11 Güncellemesi Sonrası Akıllı Kart Servis Onarımı](https://eimzabilgi.site/yazilar/windows-11-eimza-akis-kurulum-sorunlari.html)
+* 📄 [Mac (macOS Sonoma / Sequoia) Üzerinde E-İmza ve AKİS Kurulumu](https://eimzabilgi.site/yazilar/mac-macos-eimza-kurulumu-akis-kart-okuyucu.html)
 
 ---
 
