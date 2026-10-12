@@ -37,6 +37,8 @@ KNOWN_PKCS11_LIBS = {
         ],
         "darwin": [
             "/usr/local/lib/libakisp11.dylib",
+            "/Applications/AKIS/libakisp11.dylib",
+            "/opt/homebrew/lib/libakisp11.dylib",
             "/Library/Frameworks/AkiS.framework/AkiS"
         ]
     },
@@ -50,7 +52,8 @@ KNOWN_PKCS11_LIBS = {
             "/usr/local/lib/libeTPKCS11.so"
         ],
         "darwin": [
-            "/usr/local/lib/libeTPKCS11.dylib"
+            "/usr/local/lib/libeTPKCS11.dylib",
+            "/Library/Frameworks/eToken.framework/Versions/A/libeToken.dylib"
         ]
     },
     "TÜRKTRUST / Bit4id (Palma & Minisign)": {
@@ -88,7 +91,9 @@ KNOWN_PKCS11_LIBS = {
         ],
         "darwin": [
             "/Library/OpenSC/lib/opensc-pkcs11.so",
-            "/usr/local/lib/opensc-pkcs11.so"
+            "/Library/OpenSC/lib/opensc-pkcs11.dylib",
+            "/usr/local/lib/opensc-pkcs11.so",
+            "/opt/homebrew/lib/opensc-pkcs11.dylib"
         ]
     }
 }
@@ -98,7 +103,8 @@ KNOWN_USB_VENDORS = {
     "04e6": "SCM Microsystems / Identiv",
     "0529": "Aladdin / SafeNet (eToken Pro / 5100 / 5110)",
     "096e": "Feitian Technologies (ePass2003 / Rockey)",
-    "08e6": "Gemalto / Thales",
+    "08e6": "Gemalto / Thales (Gemplus / IDBridge)",
+    "2047": "Texas Instruments (MSP430 Token)",
     "076b": "Omnikey (HID Global)"
 }
 
