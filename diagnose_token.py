@@ -137,6 +137,18 @@ def check_smartcard_service():
         except Exception as e:
             status = "HATA"
             detail = str(e)
+    elif os_type == "darwin":
+        try:
+            res = subprocess.run(["pgrep", "-f", "SmartCard"], capture_output=True, text=True, timeout=5)
+            if res.returncode == 0:
+                status = "CALISIYOR"
+                detail = "macOS CryptoTokenKit / SmartCard servisi aktif"
+            else:
+                status = "HAZIRDA_BEKLIYOR"
+                detail = "macOS SmartCard servisi arka planda hazir (Tak-calistir)"
+        except Exception as e:
+            status = "KONTROL_EDILEMEDI"
+            detail = str(e)
     else:
         try:
             res = subprocess.run(["systemctl", "is-active", "pcscd"], capture_output=True, text=True, timeout=5)

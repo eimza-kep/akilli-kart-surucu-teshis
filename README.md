@@ -5,17 +5,17 @@
 [![Platform: Win | Linux | Mac](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-blue.svg)](https://github.com)
 [![Blog](https://img.shields.io/badge/Rehber-E--%C4%B0mza%20Rehberi-22c55e.svg)](https://eimzabilgi.site/)
 
-Windows (10/11), Linux ve macOS sistemlerinde e-imza USB token cihazlarının, akıllı kart okuyucularının, **Windows Akıllı Kart Hizmetinin (SCardSvr)** ve Türkiye'deki yetkili ESHS sağlayıcılarına (TÜBİTAK Kamu SM / AKİS, SafeNet / Thales, TÜRKTRUST, E-Tuğra, E-Güven vb.) ait **PKCS#11 sürücülerinin** kurulu olup olmadığını denetleyen açık kaynaklı tanı asistanı.
+Windows (10/11), Linux ve macOS (macOS 15 Sequoia, Apple Silicon M1-M4) sistemlerinde e-imza USB token cihazlarının, akıllı kart okuyucularının, **Windows Akıllı Kart Hizmetinin (SCardSvr)**, Linux **pcscd** ve macOS **CryptoTokenKit** altyapısının yanı sıra Türkiye'deki yetkili ESHS sağlayıcılarına (TÜBİTAK Kamu SM / AKİS, SafeNet / Thales, TÜRKTRUST, E-Tuğra, E-Güven vb.) ait **PKCS#11 sürücülerinin** kurulu olup olmadığını denetleyen açık kaynaklı tanı asistanı.
 
 ---
 
 ## ✨ Öne Çıkan Özellikler
 
-* 🖥️ **Çoklu Platform:** Windows, Linux ve macOS ortamlarını otomatik tespit eder.
-* ⚙️ **Akıllı Kart Servis Kontrolü:** `SCardSvr` (Windows) ve `pcscd` (Linux) hizmet durumunu denetler.
+* 🖥️ **Çoklu Platform:** Windows, Linux ve macOS (Intel & Apple Silicon arm64) ortamlarını otomatik tespit eder.
+* ⚙️ **Akıllı Kart Servis Kontrolü:** `SCardSvr` (Windows), `pcscd` (Linux) ve CryptoTokenKit (macOS) hizmet durumunu denetler.
 * 📦 **Türkiye ESHS Kapsamı:** AKİS, SafeNet, TÜRKTRUST Palma, E-Tuğra CardOS/Asekey ve OpenSC kütüphanelerini tarar.
 * 🔌 **USB Donanım Eşleme:** VID/PID kodlarına göre ACS, Identiv, Aladdin, Feitian ve Omnikey okuyucuları tanır.
-* 📊 **Çoklu Çıktı:** Terminal, JSON ve Markdown formatında teşhis raporu üretir.
+* 📊 **Çoklu Çıktı:** Terminal, Shell, JSON ve Markdown formatında teşhis raporu üretir.
 
 ---
 
@@ -26,19 +26,26 @@ Windows (10/11), Linux ve macOS sistemlerinde e-imza USB token cihazlarının, a
 python diagnose_token.py
 ```
 
-### 2. Markdown ve JSON Raporu
+### 2. macOS & Linux İçin Tek Tıkla Shell Teşhisi
+macOS Sequoia (M1/M2/M3/M4) ve Linux dağıtımlarında doğrudan çalıştırmak için:
 ```bash
-# Markdown formatında rapor oluşturma
-python diagnose_token.py --markdown
-
-# Otomasyon için JSON çıktısı
-python diagnose_token.py --json
+chmod +x diagnose_smartcard.sh
+./diagnose_smartcard.sh
 ```
 
 ### 3. Windows PowerShell Doğrudan Onarım
 Windows ortamında tek tıkla servisi onarmak ve kartı denetlemek için:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\Diagnose-SmartCard.ps1
+```
+
+### 4. Markdown ve JSON Raporu
+```bash
+# Markdown formatında rapor oluşturma
+python diagnose_token.py --markdown
+
+# Otomasyon ve CI için JSON çıktısı
+python diagnose_token.py --json
 ```
 
 ---
@@ -58,10 +65,3 @@ Bu araç [eimza-kep](https://github.com/eimza-kep) organizasyonunun açık kayna
 ## 📚 İlgili Teknik Rehberler
 * 📄 [E-İmza Kartı Takılı Ama Okumuyor Hatası Kesin Çözüm Adımları](https://eimzabilgi.site/yazilar/e-imza-karti-okumuyor-hatasi-kesin-cozum.html)
 * 📄 [Windows 11 Güncellemesi Sonrası Akıllı Kart Servis Onarımı](https://eimzabilgi.site/yazilar/windows-11-eimza-akis-kurulum-sorunlari.html)
-* 📄 [Mac (macOS Sonoma / Sequoia) Üzerinde E-İmza ve AKİS Kurulumu](https://eimzabilgi.site/yazilar/mac-macos-eimza-kurulumu-akis-kart-okuyucu.html)
-
----
-
-## ⚖️ Lisans
-
-Bu proje [MIT Lisansı](LICENSE) ile lisanslanmıştır.

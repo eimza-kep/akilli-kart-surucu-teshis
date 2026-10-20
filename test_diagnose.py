@@ -21,8 +21,15 @@ class TestSmartCardDiagnose(unittest.TestCase):
         os_type = detect_platform_os()
         self.assertIn(os_type, ["win", "darwin", "linux"])
 
-    def test_check_installed_pkcs11(self):
+    def test_check_installed_pkcs11_linux(self):
         res = check_installed_pkcs11(os_type="linux")
+        self.assertIn("found", res)
+        self.assertIn("missing", res)
+        total = len(res["found"]) + len(res["missing"])
+        self.assertGreaterEqual(total, 4)
+
+    def test_check_installed_pkcs11_darwin(self):
+        res = check_installed_pkcs11(os_type="darwin")
         self.assertIn("found", res)
         self.assertIn("missing", res)
         total = len(res["found"]) + len(res["missing"])
