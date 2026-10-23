@@ -4,7 +4,7 @@
 # ==============================================================================
 # macOS Sequoia (15.x), Sonoma, Ventura (Apple Silicon M1-M4 & Intel) ve
 # Linux (Ubuntu, Debian, Fedora, Arch, RHEL) için tek tıkla e-imza donanım,
-# akıllı kart okuyucu, pcscd servisi ve PKCS#11 kütüphane teşhis betiği.
+# akıllı kart okuyucu, pcscd servisi, Apple CryptoTokenKit ve PKCS#11 teşhis betiği.
 # ==============================================================================
 
 set -e
@@ -24,7 +24,7 @@ echo -e "${CYAN}================================================================
 OS="$(uname -s)"
 ARCH="$(uname -m)"
 
-echo -e "\n${BLUE}[1/5] Sistem Bilgileri:${NC}"
+echo -e "\n${BLUE}[1/6] Sistem Bilgileri:${NC}"
 echo "  İşletim Sistemi : $OS"
 echo "  İşlemci Mimarisi: $ARCH"
 
@@ -49,7 +49,7 @@ elif [ "$OS" = "Linux" ]; then
 fi
 
 # 2. Akıllı Kart Servis Kontrolü (pcscd / com.apple.ifdreader)
-echo -e "\n${BLUE}[2/5] Akıllı Kart Servis Durumu:${NC}"
+echo -e "\n${BLUE}[2/6] Akıllı Kart Servis Durumu:${NC}"
 
 if [ "$IS_MACOS" = true ]; then
     if pgrep -x "com.apple.ifdreader" >/dev/null || pgrep -f "SmartCard" >/dev/null; then
@@ -66,8 +66,32 @@ elif [ "$IS_LINUX" = true ]; then
     fi
 fi
 
-# 3. Takılı USB Kart Okuyucu Kontrolü
-echo -e "\n${BLUE}[3/5] Takılı USB Kart Okuyucu Donanımları:${NC}"
+# 3. macOS CryptoTokenKit (TKSmartCardSlotManager) Denetimi
+if [ "$IS_MACOS" = true ]; then
+    echo -e "\n${BLUE}[3/6] Apple CryptoTokenKit Durumu:${NC}"
+    if command -v security >/dev/null; then
+        CTK_STATUS=$(security smartcards status 2>/dev/null || true)
+        if [[ "$CTK_STATUS" != *"disabled"* ]]; then
+            echo -e "  ${GREEN}✓ CryptoTokenKit (Modern macOS Akıllı Kart Altyapısı) AKTİF.${NC}"
+        else
+            echo -e "  ${YELLOW}⚠ CryptoTokenKit devre dışı bırakılmış görünüyor.${NC}"
+        fi
+
+        # Takılı modern token listesi
+        TOKENS=$(security smartcards token -l 2>/dev/null || true)
+        if [ -n "$TOKENS" ]; then
+            echo -e "  ${GREEN}✓ CryptoTokenKit Tarafından Tanınan Tokenlar:${NC}"
+            echo "$TOKENS" | while read -r line; do echo "    $line"; done
+        else
+            echo "    (CryptoTokenKit üzerinde henüz eşleşmiş token kaydı bulunmuyor)"
+        fi
+    fi
+fi
+
+# 4. Takılı USB Kart Okuyucu Kontrolü
+STEP_TITLE="[4/6]"
+if [ "$IS_MACOS" = false ]; then STEP_TITLE="[3/5]"; fi
+echo -e "\n${BLUE}${STEP_TITLE} Takılı USB Kart Okuyucu Donanımları:${NC}"
 
 READERS_FOUND=0
 
@@ -96,28 +120,33 @@ if [ "$READERS_FOUND" -eq 0 ]; then
     echo "    (Cihazı farklı bir USB portuna veya Type-C dönüştürücüye takıp tekrar deneyin)"
 fi
 
-# 4. Yüklü PKCS#11 E-İmza Kütüphaneleri
-echo -e "\n${BLUE}[4/5] PKCS#11 Sürücü Kütüphaneleri Taraması:${NC}"
+# 5. Yüklü PKCS#11 E-İmza Kütüphaneleri
+STEP_PKCS="[5/6]"
+if [ "$IS_MACOS" = false ]; then STEP_PKCS="[4/5]"; fi
+echo -e "\n${BLUE}${STEP_PKCS} PKCS#11 Sürücü Kütüphaneleri Taraması:${NC}"
 
 LIBS_TO_CHECK=()
 
 if [ "$IS_MACOS" = true ]; then
     LIBS_TO_CHECK=(
-        "/Applications/AKIS/libakisp11.dylib:TÜBİTAK AKİS (Resmi Uygulama)"
+        "/opt/homebrew/lib/libakisp11.dylib:TÜBİTAK AKİS (Homebrew Apple Silicon arm64)"
         "/usr/local/lib/libakisp11.dylib:TÜBİTAK AKİS (/usr/local/lib)"
-        "/opt/homebrew/lib/libakisp11.dylib:TÜBİTAK AKİS (Homebrew Apple Silicon)"
+        "/Applications/AKIS/libakisp11.dylib:TÜBİTAK AKİS (Resmi Uygulama)"
+        "/Applications/AKIS.app/Contents/Resources/libakisp11.dylib:TÜBİTAK AKİS App Paketi"
         "/Library/Frameworks/AkiS.framework/AkiS:TÜBİTAK AKİS Framework"
-        "/Library/Frameworks/eToken.framework/Versions/A/libeToken.dylib:SafeNet / Thales eToken (Safenet)"
+        "/Library/Frameworks/eToken.framework/Versions/A/libeToken.dylib:SafeNet / Thales eToken"
         "/usr/local/lib/libeTPKCS11.dylib:SafeNet eTPKCS11"
+        "/opt/homebrew/lib/libeTPKCS11.dylib:SafeNet (Homebrew arm64)"
         "/Library/Frameworks/bit4ipki.framework/bit4ipki:TÜRKTRUST / Bit4id"
         "/Library/OpenSC/lib/opensc-pkcs11.dylib:OpenSC PKCS#11"
-        "/opt/homebrew/lib/opensc-pkcs11.dylib:OpenSC (Apple Silicon)"
+        "/opt/homebrew/lib/opensc-pkcs11.dylib:OpenSC (Apple Silicon arm64)"
     )
 elif [ "$IS_LINUX" = true ]; then
     LIBS_TO_CHECK=(
         "/usr/lib/libakisp11.so:TÜBİTAK AKİS (/usr/lib)"
         "/usr/local/lib/libakisp11.so:TÜBİTAK AKİS (/usr/local/lib)"
         "/usr/lib/x86_64-linux-gnu/libakisp11.so:TÜBİTAK AKİS (Debian/Ubuntu 64-bit)"
+        "/usr/lib/aarch64-linux-gnu/libakisp11.so:TÜBİTAK AKİS (ARM64 Linux)"
         "/usr/lib/libeTPKCS11.so:SafeNet eToken PKCS#11"
         "/usr/lib/libbit4ipki.so:TÜRKTRUST Bit4id"
         "/usr/lib/libasepkcs.so:E-Tuğra Asekey"
@@ -139,13 +168,15 @@ done
 if [ "$FOUND_COUNT" -eq 0 ]; then
     echo -e "  ${YELLOW}⚠ Sistemde yüklü standart bir PKCS#11 sürücüsü bulunamadı.${NC}"
     if [ "$IS_MACOS" = true ]; then
-        echo "    Öneri: TÜBİTAK Kamu SM web sitesinden güncel macOS AKİS paketini kurun."
+        echo "    Öneri (macOS Sequoia & Apple Silicon):"
+        echo "    1) Kamu SM AKİS güncel arm64 paketini kurun."
+        echo "    2) Veya Homebrew ile OpenSC kurun: 'brew install opensc'"
     elif [ "$IS_LINUX" = true ]; then
         echo "    Öneri: 'sudo apt install pcscd opensc' veya AKİS .deb/.rpm paketini yükleyin."
     fi
 fi
 
-# 5. Sonuç ve Özet
+# 6. Sonuç ve Özet
 echo -e "\n${CYAN}==================================================================${NC}"
 echo -e "${CYAN}                       TEŞHİS ÖZETİ                              ${NC}"
 echo -e "${CYAN}==================================================================${NC}"
