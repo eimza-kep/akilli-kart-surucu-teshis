@@ -333,6 +333,18 @@ def generate_markdown_report(report):
 
     return md
 
+
+def check_linux_ccid_service():
+    """Linux sistemlerde pcscd servisi ve CCID sürücü durumunu denetler."""
+    import shutil, subprocess
+    if shutil.which("systemctl"):
+        try:
+            res = subprocess.run(["systemctl", "is-active", "pcscd"], capture_output=True, text=True)
+            return res.stdout.strip() == "active"
+        except Exception:
+            pass
+    return False
+
 def main():
     import argparse
     parser = argparse.ArgumentParser(description="E-İmza & Akıllı Kart Sürücü Teşhis Aracı v1.3")
